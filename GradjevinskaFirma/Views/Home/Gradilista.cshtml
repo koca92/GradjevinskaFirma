@@ -1,0 +1,48 @@
+﻿@using GradjevinskaFirma.Data
+@using static GradjevinskaFirma.Data.Context
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+    
+*@
+@{
+    
+}
+<div>
+<button onclick="Show()" >Dodaj gradiliste</button>
+</div>
+<div id="addForm" style="visibility:hidden">
+    <form action="/Api/AddGradiliste" method="post">
+        <table>
+            <tr>
+                <td>Naziv Gradilista</td>
+                <td><input type="text" name="naziv"/></td>
+            </tr>
+            <tr>
+                <td>Adresa</td>
+                <td>
+                    <input type="text" name="adresa"/>
+                </td>
+            </tr>
+            <tr style="column-span:2"><td> <input type="submit" /> </td> </tr>
+        </table>
+    </form>
+</div>
+<div>
+    <table>
+        <tr>
+            <th>Naziv</th>
+            <th>Adresa</th>
+        </tr>
+        @{
+            using (var db = new Context())
+            {
+                var gradilista = db.Gradilista.ToList<Gradiliste>();
+                foreach(var g in gradilista)
+                {
+                    <tr><td>@g.Naziv</td><td>@g.Adresa</td></tr>
+                }
+            }
+        }
+    </table>
+</div>
+

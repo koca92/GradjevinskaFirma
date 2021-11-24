@@ -1,0 +1,65 @@
+﻿@using GradjevinskaFirma.Data
+@using Microsoft.EntityFrameworkCore
+@using static GradjevinskaFirma.Data.Context
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+<div>
+<button onclick="Show()" >Dodaj Radnika</button>
+</div>
+<div id="addForm" style="visibility:hidden">
+    <form action="/Api/AddRadnik" method="post">
+        <table>
+            <tr>
+                <td>Prezime i Ime</td>
+                <td><input type="text" name="prezimeime"/></td>
+            </tr>
+            <tr>
+                <td>JMBG</td>
+                <td>
+                    <input type="text" name="jmbg"/>
+                </td>
+            </tr>
+            <tr>
+                <td>Radno mesto</td>
+                <td>
+                <select name="radnomesto">
+                    @{
+                        using(var db = new Context())
+                        {
+                            var radm = db.RadnaMesta.ToList<RadnoMesto>();
+                            foreach (var r in radm)
+                            {
+                                <option value=@r.ID_RM>@r.RM</option>
+                            }
+                        }
+                    }
+                </select>
+                </td>
+            </tr>
+            <tr style="column-span:2"><td> <input type="submit" /> </td> </tr>
+        </table>
+    </form>
+</div>
+<div>
+    <table>
+        <tr>
+            <th>Prezime i Ime</th>
+            <th>JMBG</th>
+            <th>Radno mesto</th>
+        </tr>
+        @{
+            using (var db = new Context())
+            {
+                var i = db.Radnici.Include(q => q.RadnaMesta).ToList<Radnik>();
+                foreach(var g in i)
+                {
+                    <tr><td>@g.PrezimeIme</td><td>@g.JMBG</td><td>@g.RadnaMesta.RM</td></tr>
+                    
+                }
+            }
+        }
+    </table>
+</div>

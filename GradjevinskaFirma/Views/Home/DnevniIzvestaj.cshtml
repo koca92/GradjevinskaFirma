@@ -1,0 +1,179 @@
+﻿@using GradjevinskaFirma.Data
+@using System.Diagnostics
+@using Microsoft.EntityFrameworkCore
+@using static GradjevinskaFirma.Data.Context
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+<div>
+<button onclick="Show()" >Novi izvestaj</button>
+</div>
+<div id="addForm" style="visibility:hidden">
+    <form action="#" method="post">
+        <table>
+            <tr>
+                <td>Gradiliste</td>
+                <td><select id="GradilisteSel">
+                        @{
+                            var con = new Context();
+                            var gr = con.Gradilista.ToList<Gradiliste>();
+                            foreach(var g in gr)
+                            {
+                                <option value=@g.ID>@g.Naziv</option>
+                            }
+
+                        }
+                </select></td>
+            </tr>
+            <tr>
+                <td>Podnosilac izvestaja</td>
+                <td>
+                    <select id="podnosilacIZ">
+                        @{
+                            
+                            var r = con.Radnici.ToList<Radnik>();
+                            foreach(var g in r)
+                            {
+                                <option value=@g.ID_Radnici>@g.PrezimeIme</option>
+                            }
+
+                        }
+                    </select></td>
+                </td>
+            </tr>
+            <tr>
+                <td>Datum</td>
+                <td><input type="date" id="datum"/></td>
+            </tr>
+
+            <tr>
+                <td>Napomena</td>
+                <td><textarea id="napomena"></textarea></td>
+            </tr>
+            <tr>
+                <td>Slika</td>
+
+                <td><input type="file" /></td>
+            </tr>
+            <tr><td> <button onclick="Upisi()">Dodaj</button> </td> </tr>
+        </table>
+    </form>
+    <table id="radniksat">
+        <tr>
+            <th>
+                Radnik
+            </th>
+            <th>Broj sati</th>
+        </tr>
+        <tr>
+            <td><select id="rh">
+                    @{
+                        var conte = new Context();
+                        var ra = conte.Radnici.ToList<Radnik>();
+                            foreach(var g in ra)
+                            {
+                            <option value=@g.ID_Radnici>@g.PrezimeIme</option>
+                        }
+
+                    }
+                </select></td>
+            <td><input type="number" id="rhh"/><button onclick="AddRadnikSat()">Add</button></td>
+        </tr>
+    </table>
+    
+
+</div>
+<div>
+    <table>
+        <tr>
+                <th>Gradiliste</th>
+                <th>Podnosioc</th>
+                <th>Datum</th>
+                <th>Radnisati</th>
+            </tr>
+        @{
+            var cont = new Context();
+            var dz = cont.DnevniIzvestaji.Include(q => q.Gradiliste)
+                                         .Include(q=>q.Podnosilac)
+                                         .Include(q=>q.RadniSati)
+                                            .ToList<DnevniIzvestaj>();
+            foreach(var d in dz)
+            {
+                <tr>
+                    <td>
+                        @d.Gradiliste.Naziv
+                    </td>
+                    <td>@d.Podnosilac.PrezimeIme</td>
+                    <td>@d.Datum</td>
+                    <td>@{
+                            var rss = cont.radniSati.Include(q => q.Radnik).ToList();
+                            foreach (var ras in rss)
+                            {
+                                <table>
+                                    <tr>
+                                        <td>@ras.Radnik.PrezimeIme</td>
+                                        <td>@ras.Sati</td>
+                                    </tr>
+                                </table>
+                            }
+
+                    }</td>
+                </tr>
+            }
+        }
+    </table>
+</div>
+<script type="text/javascript">
+    var RadniciSati=[];
+    function AddRadnikSat() {
+    let radnik = document.getElementById("rh");
+    let sati = document.getElementById("rhh");
+    let table = document.getElementById("radniksat");
+    // Create an empty <tr> element and add it to the 1st position of the table:
+    let row = table.insertRow()
+
+    // Insert new cells (<td> elements) at the 1st and 2nd position of the "new" <tr> element:
+    let cell1 = row.insertCell(0);
+    let cell2 = row.insertCell(1);
+
+    // Add some text to the new cells:
+
+    cell1.innerHTML = radnik.options[radnik.selectedIndex].text;
+    cell2.innerHTML = sati.value;
+    RadniciSati.push(`${radnik.options[radnik.selectedIndex].value}|${sati.value}`);
+
+    };
+    function Upisi(){
+        let gradilisteID= document.getElementById("GradilisteSel").value;
+        let podnosilacID = $("#podnosilacIZ").val();
+        let datum = $("#datum").val();
+        let napomena = $("#napomena").val();
+        let jsonData = {    
+        }
+        
+        let rs="";
+        for(let i=0;i<RadniciSati.length;i++){
+            rs+=RadniciSati[i];
+            if(i<RadniciSati.length-1){
+                rs+=';';
+            }
+        }
+
+        
+        let jsondata = {GradilisteID:gradilisteID,
+                    PodnosilacZahteva:podnosilacID,
+                    Datum:`${datum}`,
+                    Napomena:`${napomena}`,
+                    RadniSati:`${RadniciSati}`
+        };
+        let jsonst=JSON.stringify(jsondata);
+
+
+        $.get("/api/AddIzvestaj",{GradilisteID:gradilisteID,PodnosilacZahteva:podnosilacID,Datum:datum,Napomena:napomena,RadniSati:rs}).done(function(data){alert(data)});
+            
+        console.log(jsonst);
+
+    };
+</script>
